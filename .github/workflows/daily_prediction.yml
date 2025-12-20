@@ -1,0 +1,54 @@
+name: Daily Bitcoin AI Prediction
+
+on:
+  # اجرا به صورت خودکار هر روز ساعت 00:00 UTC
+  schedule:
+    - cron: '0 0 * * *'
+  # دکمه اجرای دستی برای تست فوری
+  workflow_dispatch:
+
+# مجوز دادن به ربات برای ذخیره فایل‌ها در گیت‌هاب
+permissions:
+  contents: write
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1. دریافت کدها از مخزن
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    # 2. نصب پایتون 3.10 (پایدارترین نسخه برای تنسورفلو)
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    # 3. نصب مستقیم پکیج‌ها (بدون نیاز به requirements.txt)
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install numpy pandas yfinance requests scikit-learn tensorflow-cpu
+
+    # 4. ساخت پوشه‌های مورد نیاز (محض اطمینان)
+    - name: Create directories
+      run: |
+        mkdir -p data
+        mkdir -p models
+
+    # 5. اجرای مدل (فرض بر این است که نام فایل main.py است)
+    - name: Run AI Model
+      env:
+        TF_ENABLE_ONEDNN_OPTS: 0
+      run: |
+        python main.py
+
+    # 6. ذخیره و آپلود نتایج (دیتابیس، مدل و داشبورد)
+    - name: Commit and Push changes
+      uses: stefanzweifel/git-auto-commit-action@v5
+      with:
+        commit_message: "🤖 AI Update: New Prediction & Data"
+        # فقط فایل‌های تغییر یافته در این مسیرها را ذخیره کن
+        file_pattern: 'data/* models/* README.md'
