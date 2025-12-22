@@ -1,0 +1,219 @@
+name: Bitcoin Model Backtest
+
+on:
+  # اجرای دستی
+  workflow_dispatch:
+    inputs:
+      test_days:
+        description: 'Number of days to test (default: 100)'
+        required: false
+        default: '100'
+        type: string
+  
+  # اجرای هفتگی (هر یکشنبه ساعت 00:00 UTC)
+  schedule:
+    - cron: '0 0 * * 0'
+
+jobs:
+  backtest:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pandas numpy yfinance tensorflow scikit-learn joblib
+      
+      - name: Update data (fetch latest)
+        run: |
+          python -c "
+          import yfinance as yf
+          import pandas as pd
+          import os
+          
+          # تنظیمات
+          tickers = {
+              'BTC-USD': 'Bitcoin',
+              'ETH-USD': 'Ethereum',
+              'BNB-USD': 'BNB',
+              'SOL-USD': 'Solana',
+              'XRP-USD': 'XRP',
+              'DOGE-USD': 'Dogecoin',
+              'ADA-USD': 'Cardano',
+              'TRX-USD': 'Tron',
+              'AVAX-USD': 'Avalanche',
+              'LINK-USD': 'Chainlink',
+              '^GSPC': 'SP500',
+              '^VIX': 'VIX_Index',
+              'GC=F': 'Gold',
+              'DX-Y.NYB': 'DXY'
+          }
+          
+          print('Fetching latest data...')
+          raw = yf.download(list(tickers.keys()), period='max', progress=False)
+          
+          if isinstance(raw.columns, pd.MultiIndex):
+              closes = raw.xs('Close', level=0, axis=1)
+          else:
+              closes = raw['Close']
+          
+          closes = closes.rename(columns=tickers)
+          closes = closes.ffill().fillna(0)
+          
+          # ذخیره
+          os.makedirs('data', exist_ok=True)
+          closes.to_csv('data/bitcoin_daily_full.csv')
+          print(f'Data saved. Rows: {len(closes)}')
+          "
+      
+      - name: Run feature engineering
+        run: |
+          python -c "
+          import pandas as pd
+          import numpy as np
+          
+          df = pd.read_csv('data/bitcoin_daily_full.csv', index_col=0, parse_dates=True)
+          
+          # فیلتر داده‌های بیت‌کوین
+          df = df[df.index >= '2010-07-17']
+          df = df[df['Bitcoin'] > 0]
+          
+          # Log returns
+          for col in df.columns:
+              pct = df[col].pct_change().replace([np.inf, -np.inf], np.nan).fillna(0)
+              df[f'{col}_LogRet'] = np.log1p(pct)
+          
+          # RSI
+          delta = df['Bitcoin'].diff()
+          gain = delta.where(delta > 0, 0).rolling(14).mean()
+          loss = (-delta.where(delta < 0, 0)).rolling(14).mean()
+          rs = gain / (loss + 1e-10)
+          df['RSI'] = 100 - (100 / (1 + rs))
+          df['RSI'] = df['RSI'].replace([np.inf, -np.inf], 50).fillna(50)
+          
+          # SMA و Trend
+          df['SMA_50'] = df['Bitcoin'].rolling(50).mean()
+          sma_safe = df['SMA_50'].replace(0, np.nan)
+          df['Trend_Dev'] = (df['Bitcoin'] / sma_safe) - 1
+          df['Trend_Dev'] = df['Trend_Dev'].replace([np.inf, -np.inf], 0).fillna(0)
+          
+          # MACD
+          ema12 = df['Bitcoin'].ewm(span=12, adjust=False).mean()
+          ema26 = df['Bitcoin'].ewm(span=26, adjust=False).mean()
+          df['MACD'] = ema12 - ema26
+          
+          # Volatility
+          df['Volatility'] = df['Bitcoin_LogRet'].rolling(14).std()
+          
+          # Lags
+          for col in ['Bitcoin_LogRet', 'RSI', 'Trend_Dev', 'Volatility']:
+              if col in df.columns:
+                  for lag in [1, 2, 3, 7]:
+                      df[f'{col}_Lag{lag}'] = df[col].shift(lag)
+          
+          # Target
+          df['Target'] = df['Bitcoin_LogRet'].shift(-1)
+          
+          df = df.replace([np.inf, -np.inf], np.nan).fillna(0)
+          df.to_csv('data/bitcoin_daily_full.csv')
+          print(f'Features engineered. Rows: {len(df)}')
+          "
+      
+      - name: Run backtest
+        id: backtest
+        run: |
+          python backtest.py
+          
+          # خواندن نتایج برای summary
+          python -c "
+          import json
+          with open('backtest_results.json', 'r') as f:
+              results = json.load(f)
+          
+          direction_acc = results['direction_metrics']['direction_accuracy']
+          mape = results['price_metrics']['mape_percent']
+          
+          print(f'DIRECTION_ACCURACY={direction_acc}')
+          print(f'MAPE={mape}')
+          " >> $GITHUB_OUTPUT
+      
+      - name: Upload backtest results
+        uses: actions/upload-artifact@v4
+        with:
+          name: backtest-results
+          path: |
+            backtest_results.json
+            backtest_models/
+          retention-days: 30
+      
+      - name: Create summary
+        run: |
+          python -c "
+          import json
+          
+          with open('backtest_results.json', 'r') as f:
+              results = json.load(f)
+          
+          summary = '''
+          ## 📊 Backtest Results
+          
+          ### Test Period
+          - **Start:** {start}
+          - **End:** {end}
+          - **Days:** {days}
+          
+          ### 🎯 Direction Accuracy
+          | Metric | Value |
+          |--------|-------|
+          | Overall | {dir_acc}% |
+          | Up Days | {up_acc}% ({up_days} days) |
+          | Down Days | {down_acc}% ({down_days} days) |
+          
+          ### 💰 Price Prediction
+          | Metric | Value |
+          |--------|-------|
+          | MAE | \${mae:,.2f} |
+          | RMSE | \${rmse:,.2f} |
+          | MAPE | {mape:.4f}% |
+          
+          ### 📈 Return Metrics
+          | Metric | Value |
+          |--------|-------|
+          | Correlation | {corr:.4f} |
+          
+          ### 💹 Trading Simulation
+          | Strategy | Return |
+          |----------|--------|
+          | Model Strategy | {strat:+.2f}% |
+          | Buy & Hold | {bh:+.2f}% |
+          | Difference | {diff:+.2f}% |
+          '''.format(
+              start=results['test_period']['start_date'][:10],
+              end=results['test_period']['end_date'][:10],
+              days=results['test_period']['total_days'],
+              dir_acc=results['direction_metrics']['direction_accuracy'],
+              up_acc=results['direction_metrics']['up_day_accuracy'],
+              up_days=results['direction_metrics']['actual_up_days'],
+              down_acc=results['direction_metrics']['down_day_accuracy'],
+              down_days=results['direction_metrics']['actual_down_days'],
+              mae=results['price_metrics']['mae_usd'],
+              rmse=results['price_metrics']['rmse_usd'],
+              mape=results['price_metrics']['mape_percent'],
+              corr=results['return_metrics']['correlation'],
+              strat=results['trading_simulation']['strategy_cumulative_return'],
+              bh=results['trading_simulation']['buy_hold_cumulative_return'],
+              diff=results['trading_simulation']['strategy_vs_buy_hold']
+          )
+          
+          with open('$GITHUB_STEP_SUMMARY', 'a') as f:
+              f.write(summary)
+          "
