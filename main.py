@@ -6,12 +6,21 @@ import yfinance as yf
 import requests
 import tensorflow as tf
 import random
+import joblib
+import logging
 from datetime import datetime
 from sklearn.preprocessing import RobustScaler, StandardScaler
 from tensorflow.keras.models import Model, load_model
 from tensorflow.keras.layers import Input, LSTM, Dense, Dropout, Attention, GlobalAveragePooling1D, Concatenate
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau, ModelCheckpoint
+
+# تنظیم logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
@@ -21,6 +30,9 @@ DATA_DIR = 'data'
 MODEL_DIR = 'models'
 DATA_FILE = os.path.join(DATA_DIR, 'bitcoin_daily_full.csv')
 MODEL_FILE = os.path.join(MODEL_DIR, 'btc_advanced_model.keras')
+SCALER_X_FILE = os.path.join(MODEL_DIR, 'scaler_x.joblib')
+SCALER_Y_FILE = os.path.join(MODEL_DIR, 'scaler_y.joblib')
+FEATURE_COLS_FILE = os.path.join(MODEL_DIR, 'feature_cols.joblib')
 README_FILE = 'README.md'
 LOOKBACK = 60
 
@@ -99,6 +111,14 @@ class DataManager:
     def engineer_features(self):
         print("Engineering features...")
         
+        # فیلتر کردن داده‌های قبل از شروع بیت‌کوین (2010-07-17 اولین قیمت ثبت شده)
+        btc_start_date = '2010-07-17'
+        if 'Bitcoin' in self.df.columns:
+            # فقط سطرهایی که بیت‌کوین قیمت دارد
+            self.df = self.df[self.df.index >= btc_start_date]
+            self.df = self.df[self.df['Bitcoin'] > 0]
+            print(f"Filtered data from {btc_start_date}. Rows: {len(self.df)}")
+        
         altcoins = ['Ethereum', 'BNB', 'Solana', 'XRP', 'Dogecoin', 'Cardano', 'Tron', 'Avalanche', 'Chainlink']
         available_alts = [col for col in altcoins if col in self.df.columns]
         if available_alts:
@@ -123,11 +143,18 @@ class DataManager:
         delta = self.df['Bitcoin'].diff()
         gain = (delta.where(delta > 0, 0)).rolling(14).mean()
         loss = (-delta.where(delta < 0, 0)).rolling(14).mean()
-        rs = gain / loss
+        # جلوگیری از تقسیم بر صفر با افزودن epsilon
+        epsilon = 1e-10
+        rs = gain / (loss + epsilon)
         self.df['RSI'] = 100 - (100 / (1 + rs))
+        # مقادیر نامعتبر را به 50 (خنثی) تبدیل می‌کنیم
+        self.df['RSI'] = self.df['RSI'].replace([np.inf, -np.inf], 50).fillna(50)
 
         self.df['SMA_50'] = self.df['Bitcoin'].rolling(50).mean()
-        self.df['Trend_Dev'] = (self.df['Bitcoin'] / self.df['SMA_50']) - 1
+        # جلوگیری از تقسیم بر صفر
+        sma_safe = self.df['SMA_50'].replace(0, np.nan)
+        self.df['Trend_Dev'] = (self.df['Bitcoin'] / sma_safe) - 1
+        self.df['Trend_Dev'] = self.df['Trend_Dev'].replace([np.inf, -np.inf], 0).fillna(0)
         
         ema12 = self.df['Bitcoin'].ewm(span=12, adjust=False).mean()
         ema26 = self.df['Bitcoin'].ewm(span=26, adjust=False).mean()
@@ -158,15 +185,18 @@ class DataManager:
             try:
                 old_df = pd.read_csv(DATA_FILE, index_col=0, parse_dates=True)
                 old_df = self.clean_index(old_df)
+                # ترکیب داده‌های جدید با قدیمی (داده‌های جدید اولویت دارند)
                 final_df = self.df.combine_first(old_df)
-            except:
+                logger.info(f"Combined with existing data. Old rows: {len(old_df)}, New rows: {len(self.df)}")
+            except Exception as e:
+                logger.warning(f"Could not load existing data: {e}. Using new data only.")
                 final_df = self.df
         else:
             final_df = self.df
             
         final_df = final_df.sort_index()
         final_df.to_csv(DATA_FILE)
-        print(f"Data saved. Rows: {len(final_df)}")
+        logger.info(f"Data saved. Total rows: {len(final_df)}")
         return final_df
 
 class ModelTrainer:
@@ -174,20 +204,48 @@ class ModelTrainer:
         self.df = df
         self.scalers = {}
         self.feature_cols = []
+    
+    def save_scalers(self):
+        """ذخیره scalers و feature columns برای استفاده بعدی"""
+        joblib.dump(self.scalers['x'], SCALER_X_FILE)
+        joblib.dump(self.scalers['y'], SCALER_Y_FILE)
+        joblib.dump(self.feature_cols, FEATURE_COLS_FILE)
+        logger.info("Scalers and feature columns saved.")
+    
+    def load_scalers(self):
+        """بارگذاری scalers و feature columns ذخیره شده"""
+        if os.path.exists(SCALER_X_FILE) and os.path.exists(SCALER_Y_FILE):
+            self.scalers['x'] = joblib.load(SCALER_X_FILE)
+            self.scalers['y'] = joblib.load(SCALER_Y_FILE)
+            if os.path.exists(FEATURE_COLS_FILE):
+                self.feature_cols = joblib.load(FEATURE_COLS_FILE)
+            logger.info("Scalers and feature columns loaded.")
+            return True
+        return False
 
     def prepare_tensors(self):
         exclude_cols = ['Target', 'Bitcoin']
-        self.feature_cols = [c for c in self.df.columns if c not in exclude_cols and 'Log' in c or c in ['RSI', 'Trend_Dev', 'MACD', 'Volatility']]
+        technical_indicators = ['RSI', 'Trend_Dev', 'MACD', 'Volatility']
+        self.feature_cols = [
+            c for c in self.df.columns 
+            if c not in exclude_cols and ('Log' in c or c in technical_indicators)
+        ]
         
         data_x = self.df[self.feature_cols].values
         data_y = self.df[['Target']].values
-
+        
+        # محاسبه نقطه تقسیم برای جلوگیری از Data Leakage
+        split_idx = int(len(data_x) * 0.9)
+        
+        # Fit کردن scaler فقط روی داده‌های آموزش
         scaler_x = RobustScaler()
-        data_x_scaled = scaler_x.fit_transform(data_x)
+        scaler_x.fit(data_x[:split_idx])
+        data_x_scaled = scaler_x.transform(data_x)
         self.scalers['x'] = scaler_x
 
         scaler_y = StandardScaler()
-        data_y_scaled = scaler_y.fit_transform(data_y)
+        scaler_y.fit(data_y[:split_idx])
+        data_y_scaled = scaler_y.transform(data_y)
         self.scalers['y'] = scaler_y
 
         X, y = [], []
@@ -195,7 +253,7 @@ class ModelTrainer:
             X.append(data_x_scaled[i-LOOKBACK:i])
             y.append(data_y_scaled[i])
 
-        return np.array(X), np.array(y)
+        return np.array(X), np.array(y), split_idx
 
     def build_model(self, input_shape):
         inputs = Input(shape=input_shape)
@@ -220,9 +278,10 @@ class ModelTrainer:
         return model
 
     def train(self):
-        X, y = self.prepare_tensors()
+        X, y, split_idx = self.prepare_tensors()
         
-        split = int(len(X) * 0.9)
+        # تنظیم split با در نظر گرفتن LOOKBACK
+        split = split_idx - LOOKBACK
         X_train, X_test = X[:split], X[split:]
         y_train, y_test = y[:split], y[split:]
 
@@ -254,22 +313,76 @@ class ModelTrainer:
             verbose=1
         )
         
-        return model, X_test
+        # ذخیره scalers بعد از آموزش
+        self.save_scalers()
+        
+        return model, X, y
 
-    def predict(self, model, last_sequence):
+    def predict(self, model, X):
+        """پیش‌بینی با استفاده از آخرین sequence موجود"""
+        last_sequence = X[-1:]  # آخرین 60 روز داده
         pred_scaled = model.predict(last_sequence, verbose=0)[0][0]
         pred_log_ret = self.scalers['y'].inverse_transform([[pred_scaled]])[0][0]
         pred_log_ret = np.clip(pred_log_ret, -0.15, 0.15)
         return pred_log_ret
+    
+    def predict_with_uncertainty(self, model, X, n_samples=100):
+        """پیش‌بینی با تخمین عدم قطعیت با استفاده از Monte Carlo Dropout"""
+        last_sequence = X[-1:]
+        predictions = []
+        
+        # فعال کردن dropout در زمان inference برای Monte Carlo
+        for _ in range(n_samples):
+            pred = model(last_sequence, training=True)
+            predictions.append(pred.numpy()[0][0])
+        
+        predictions = np.array(predictions)
+        mean_pred = np.mean(predictions)
+        std_pred = np.std(predictions)
+        
+        mean_log_ret = self.scalers['y'].inverse_transform([[mean_pred]])[0][0]
+        std_log_ret = std_pred * self.scalers['y'].scale_[0]
+        
+        mean_log_ret = np.clip(mean_log_ret, -0.15, 0.15)
+        
+        return mean_log_ret, std_log_ret
 
-def update_dashboard(current_price, predicted_price, predicted_return, confidence):
+def calculate_confidence(predicted_return, uncertainty, historical_accuracy=None):
+    """
+    محاسبه confidence با روش آماری معتبر
+    بر اساس نسبت سیگنال به نویز و عدم قطعیت مدل
+    """
+    if uncertainty is None or uncertainty == 0:
+        # اگر uncertainty نداریم، از روش ساده استفاده می‌کنیم
+        return min(50 + abs(predicted_return) * 10, 85)
+    
+    # نسبت سیگنال به نویز (Signal-to-Noise Ratio)
+    snr = abs(predicted_return) / (uncertainty * 100 + 1e-6)
+    
+    # تبدیل SNR به احتمال با تابع sigmoid
+    confidence = 100 / (1 + np.exp(-snr + 1))
+    
+    # محدود کردن به بازه معقول
+    confidence = np.clip(confidence, 30, 90)
+    
+    return confidence
+
+def update_dashboard(current_price, predicted_price, predicted_return, confidence, uncertainty=None):
     emoji = "🟢 BULLISH" if predicted_return > 0 else "🔴 BEARISH"
-    date_str = datetime.now().strftime("%Y-%m-%d %H:%M UTC")
+    date_str = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
     
     conf_str = f"{confidence:.1f}%"
     if confidence > 70: conf_str += " 🔥"
     elif confidence > 55: conf_str += " ⚠️"
     else: conf_str += " 🎲"
+    
+    # محاسبه بازه اطمینان اگر uncertainty موجود باشد
+    uncertainty_str = ""
+    if uncertainty is not None:
+        price_std = current_price * uncertainty
+        low_bound = predicted_price - 1.96 * price_std
+        high_bound = predicted_price + 1.96 * price_std
+        uncertainty_str = f"\n| **95% Confidence Interval** | ${low_bound:,.2f} - ${high_bound:,.2f} |"
 
     content = f"""
 # 🧠 Bitcoin AI Predictor (Advanced Hybrid Model)
@@ -284,52 +397,81 @@ This bot uses a **Hybrid LSTM-Attention Network** to predict Bitcoin prices base
 | **Predicted Price** | **${predicted_price:,.2f}** |
 | **Expected Return** | {predicted_return:+.2f}% |
 | **Direction** | {emoji} |
-| **Confidence** | {conf_str} |
+| **Confidence** | {conf_str} |{uncertainty_str}
 
 ### 📊 Model Architecture
-- **Type:** LSTM + Multi-Head Attention
+- **Type:** LSTM + Multi-Head Attention + Monte Carlo Dropout
 - **Input Features:** Macro, On-Chain, Technicals, Synthetic Indices
 - **Lookback Window:** {LOOKBACK} Days
 - **Loss Function:** Huber Loss
+- **Uncertainty Estimation:** Monte Carlo Dropout (100 samples)
 
 ---
 *Disclaimer: Educational purpose only. Not financial advice.*
 """
     with open(README_FILE, 'w', encoding='utf-8') as f:
         f.write(content)
-    print("Dashboard updated.")
+    logger.info("Dashboard updated.")
 
 def main():
-    dm = DataManager()
-    if not dm.fetch_data():
-        return
-    
-    dm.engineer_features()
-    final_df = dm.save_data()
-    
-    trainer = ModelTrainer(final_df)
-    model, X_test = trainer.train()
-    
-    last_sequence = X_test[-1:]
-    pred_log_ret = trainer.predict(model, last_sequence)
-    
-    last_price = final_df['Bitcoin'].iloc[-1]
-    predicted_price = last_price * np.exp(pred_log_ret)
-    predicted_return = (np.exp(pred_log_ret) - 1) * 100
-    
-    strength = abs(predicted_return)
-    confidence = min(50 + (strength * 15), 95)
-    
-    print("\n" + "="*50)
-    print(f"   PREDICTION RESULTS")
-    print("="*50)
-    print(f"   Current:    ${last_price:,.2f}")
-    print(f"   Predicted:  ${predicted_price:,.2f}")
-    print(f"   Return:     {predicted_return:+.2f}%")
-    print(f"   Confidence: {confidence:.1f}%")
-    print("="*50 + "\n")
-    
-    update_dashboard(last_price, predicted_price, predicted_return, confidence)
+    try:
+        logger.info("Starting Bitcoin AI Predictor...")
+        
+        # دریافت داده‌ها
+        dm = DataManager()
+        if not dm.fetch_data():
+            logger.error("Failed to fetch data. Exiting.")
+            return
+        
+        # مهندسی ویژگی‌ها
+        dm.engineer_features()
+        final_df = dm.save_data()
+        
+        if len(final_df) < LOOKBACK + 100:
+            logger.error(f"Insufficient data. Need at least {LOOKBACK + 100} rows, got {len(final_df)}")
+            return
+        
+        # آموزش مدل
+        trainer = ModelTrainer(final_df)
+        model, X, y = trainer.train()
+        
+        # پیش‌بینی با تخمین عدم قطعیت
+        try:
+            pred_log_ret, uncertainty = trainer.predict_with_uncertainty(model, X)
+            logger.info(f"Prediction with uncertainty: {pred_log_ret:.4f} ± {uncertainty:.4f}")
+        except Exception as e:
+            logger.warning(f"Monte Carlo prediction failed: {e}. Using simple prediction.")
+            pred_log_ret = trainer.predict(model, X)
+            uncertainty = None
+        
+        # محاسبه نتایج
+        last_price = final_df['Bitcoin'].iloc[-1]
+        predicted_price = last_price * np.exp(pred_log_ret)
+        predicted_return = (np.exp(pred_log_ret) - 1) * 100
+        
+        # محاسبه confidence با روش آماری
+        confidence = calculate_confidence(predicted_return, uncertainty)
+        
+        # نمایش نتایج
+        print("\n" + "="*50)
+        print(f"   PREDICTION RESULTS")
+        print("="*50)
+        print(f"   Current:    ${last_price:,.2f}")
+        print(f"   Predicted:  ${predicted_price:,.2f}")
+        print(f"   Return:     {predicted_return:+.2f}%")
+        print(f"   Confidence: {confidence:.1f}%")
+        if uncertainty is not None:
+            print(f"   Uncertainty: ±{uncertainty*100:.2f}%")
+        print("="*50 + "\n")
+        
+        # به‌روزرسانی داشبورد
+        update_dashboard(last_price, predicted_price, predicted_return, confidence, uncertainty)
+        
+        logger.info("Prediction completed successfully.")
+        
+    except Exception as e:
+        logger.error(f"An error occurred: {e}", exc_info=True)
+        raise
 
 if __name__ == "__main__":
     main()
