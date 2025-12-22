@@ -1,0 +1,843 @@
+{
+  "test_period": {
+    "start_date": "2025-09-13 00:00:00",
+    "end_date": "2025-12-21 00:00:00",
+    "total_days": 100
+  },
+  "direction_metrics": {
+    "accuracy": 49.0,
+    "precision": 46.67,
+    "recall": 43.75,
+    "f1_score": 45.16,
+    "up_day_accuracy": 43.75,
+    "down_day_accuracy": 53.85,
+    "actual_up_days": 48,
+    "actual_down_days": 52,
+    "predicted_up_days": 45,
+    "predicted_down_days": 55,
+    "confusion_matrix": [
+      [
+        28,
+        24
+      ],
+      [
+        27,
+        21
+      ]
+    ]
+  },
+  "model_comparison": {
+    "combined_accuracy": 49.0,
+    "ml_accuracy": 52.0,
+    "rule_accuracy": 50.0
+  },
+  "trading_simulation": {
+    "strategy_return": -1.85,
+    "buy_hold_return": -24.52,
+    "difference": 22.67
+  },
+  "daily_predictions": [
+    {
+      "date": "2025-09-13 00:00:00",
+      "predicted": 0,
+      "actual": 0,
+      "ml_prob": 0.4404,
+      "rule_score": 1,
+      "correct": true
+    },
+    {
+      "date": "2025-09-14 00:00:00",
+      "predicted": 0,
+      "actual": 1,
+      "ml_prob": 0.4695,
+      "rule_score": 1,
+      "correct": false
+    },
+    {
+      "date": "2025-09-15 00:00:00",
+      "predicted": 0,
+      "actual": 1,
+      "ml_prob": 0.4584,
+      "rule_score": 1,
+      "correct": false
+    },
+    {
+      "date": "2025-09-16 00:00:00",
+      "predicted": 0,
+      "actual": 0,
+      "ml_prob": 0.3699,
+      "rule_score": 1,
+      "correct": true
+    },
+    {
+      "date": "2025-09-17 00:00:00",
+      "predicted": 0,
+      "actual": 1,
+      "ml_prob": 0.3857,
+      "rule_score": 1,
+      "correct": false
+    },
+    {
+      "date": "2025-09-18 00:00:00",
+      "predicted": 0,
+      "actual": 0,
+      "ml_prob": 0.485,
+      "rule_score": 1,
+      "correct": true
+    },
+    {
+      "date": "2025-09-19 00:00:00",
+      "predicted": 0,
+      "actual": 1,
+      "ml_prob": 0.4293,
+      "rule_score": 2,
+      "correct": false
+    },
+    {
+      "date": "2025-09-20 00:00:00",
+      "predicted": 1,
+      "actual": 0,
+      "ml_prob": 0.4724,
+      "rule_score": 3,
+      "correct": false
+    },
+    {
+      "date": "2025-09-21 00:00:00",
+      "predicted": 0,
+      "actual": 0,
+      "ml_prob": 0.4245,
+      "rule_score": 1,
+      "correct": true
+    },
+    {
+      "date": "2025-09-22 00:00:00",
+      "predicted": 0,
+      "actual": 0,
+      "ml_prob": 0.4598,
+      "rule_score": 0,
+      "correct": true
+    },
+    {
+      "date": "2025-09-23 00:00:00",
+      "predicted": 1,
+      "actual": 1,
+      "ml_prob": 0.5491,
+      "rule_score": -1,
+      "correct": true
+    },
+    {
+      "date": "2025-09-24 00:00:00",
+      "predicted": 0,
+      "actual": 0,
+      "ml_prob": 0.3849,
+      "rule_score": -2,
+      "correct": true
+    },
+    {
+      "date": "2025-09-25 00:00:00",
+      "predicted": 1,
+      "actual": 1,
+      "ml_prob": 0.5699,
+      "rule_score": 3,
+      "correct": true
+    },
+    {
+      "date": "2025-09-26 00:00:00",
+      "predicted": 0,
+      "actual": 0,
+      "ml_prob": 0.4618,
+      "rule_score": 1,
+      "correct": true
+    },
+    {
+      "date": "2025-09-27 00:00:00",
+      "predicted": 0,
+      "actual": 1,
+      "ml_prob": 0.4973,
+      "rule_score": 1,
+      "correct": false
+    },
+    {
+      "date": "2025-09-28 00:00:00",
+      "predicted": 0,
+      "actual": 1,
+      "ml_prob": 0.3946,
+      "rule_score": 0,
+      "correct": false
+    },
+    {
+      "date": "2025-09-29 00:00:00",
+      "predicted": 0,
+      "actual": 0,
+      "ml_prob": 0.4163,
+      "rule_score": 1,
+      "correct": true
+    },
+    {
+      "date": "2025-09-30 00:00:00",
+      "predicted": 0,
+      "actual": 1,
+      "ml_prob": 0.4745,
+      "rule_score": 0,
+      "correct": false
+    },
+    {
+      "date": "2025-10-01 00:00:00",
+      "predicted": 1,
+      "actual": 1,
+      "ml_prob": 0.4193,
+      "rule_score": 4,
+      "correct": true
+    },
+    {
+      "date": "2025-10-02 00:00:00",
+      "predicted": 0,
+      "actual": 1,
+      "ml_prob": 0.3388,
+      "rule_score": 0,
+      "correct": false
+    },
+    {
+      "date": "2025-10-03 00:00:00",
+      "predicted": 0,
+      "actual": 1,
+      "ml_prob": 0.3913,
+      "rule_score": -1,
+      "correct": false
+    },
+    {
+      "date": "2025-10-04 00:00:00",
+      "predicted": 0,
+      "actual": 1,
+      "ml_prob": 0.394,
+      "rule_score": 1,
+      "correct": false
+    },
+    {
+      "date": "2025-10-05 00:00:00",
+      "predicted": 0,
+      "actual": 1,
+      "ml_prob": 0.3811,
+      "rule_score": 1,
+      "correct": false
+    },
+    {
+      "date": "2025-10-06 00:00:00",
+      "predicted": 0,
+      "actual": 0,
+      "ml_prob": 0.3737,
+      "rule_score": 0,
+      "correct": true
+    },
+    {
+      "date": "2025-10-07 00:00:00",
+      "predicted": 1,
+      "actual": 1,
+      "ml_prob": 0.4275,
+      "rule_score": 3,
+      "correct": true
+    },
+    {
+      "date": "2025-10-08 00:00:00",
+      "predicted": 0,
+      "actual": 0,
+      "ml_prob": 0.3761,
+      "rule_score": 2,
+      "correct": true
+    },
+    {
+      "date": "2025-10-09 00:00:00",
+      "predicted": 1,
+      "actual": 0,
+      "ml_prob": 0.5803,
+      "rule_score": 2,
+      "correct": false
+    },
+    {
+      "date": "2025-10-10 00:00:00",
+      "predicted": 0,
+      "actual": 0,
+      "ml_prob": 0.525,
+      "rule_score": -6,
+      "correct": true
+    },
+    {
+      "date": "2025-10-11 00:00:00",
+      "predicted": 1,
+      "actual": 1,
+      "ml_prob": 0.512,
+      "rule_score": 0,
+      "correct": true
+    },
+    {
+      "date": "2025-10-12 00:00:00",
+      "predicted": 0,
+      "actual": 1,
+      "ml_prob": 0.2845,
+      "rule_score": -2,
+      "correct": false
+    },
+    {
+      "date": "2025-10-13 00:00:00",
+      "predicted": 0,
+      "actual": 0,
+      "ml_prob": 0.4836,
+      "rule_score": -2,
+      "correct": true
+    },
+    {
+      "date": "2025-10-14 00:00:00",
+      "predicted": 1,
+      "actual": 0,
+      "ml_prob": 0.6213,
+      "rule_score": -2,
+      "correct": false
+    },
+    {
+      "date": "2025-10-15 00:00:00",
+      "predicted": 0,
+      "actual": 0,
+      "ml_prob": 0.4581,
+      "rule_score": 1,
+      "correct": true
+    },
+    {
+      "date": "2025-10-16 00:00:00",
+      "predicted": 1,
+      "actual": 0,
+      "ml_prob": 0.5726,
+      "rule_score": 1,
+      "correct": false
+    },
+    {
+      "date": "2025-10-17 00:00:00",
+      "predicted": 1,
+      "actual": 1,
+      "ml_prob": 0.6061,
+      "rule_score": 2,
+      "correct": true
+    },
+    {
+      "date": "2025-10-18 00:00:00",
+      "predicted": 0,
+      "actual": 1,
+      "ml_prob": 0.4733,
+      "rule_score": 1,
+      "correct": false
+    },
+    {
+      "date": "2025-10-19 00:00:00",
+      "predicted": 0,
+      "actual": 1,
+      "ml_prob": 0.4669,
+      "rule_score": 1,
+      "correct": false
+    },
+    {
+      "date": "2025-10-20 00:00:00",
+      "predicted": 0,
+      "actual": 0,
+      "ml_prob": 0.4334,
+      "rule_score": -1,
+      "correct": true
+    },
+    {
+      "date": "2025-10-21 00:00:00",
+      "predicted": 1,
+      "actual": 0,
+      "ml_prob": 0.5637,
+      "rule_score": 1,
+      "correct": false
+    },
+    {
+      "date": "2025-10-22 00:00:00",
+      "predicted": 1,
+      "actual": 1,
+      "ml_prob": 0.5881,
+      "rule_score": 2,
+      "correct": true
+    },
+    {
+      "date": "2025-10-23 00:00:00",
+      "predicted": 0,
+      "actual": 1,
+      "ml_prob": 0.3867,
+      "rule_score": -1,
+      "correct": false
+    },
+    {
+      "date": "2025-10-24 00:00:00",
+      "predicted": 0,
+      "actual": 1,
+      "ml_prob": 0.4802,
+      "rule_score": -2,
+      "correct": false
+    },
+    {
+      "date": "2025-10-25 00:00:00",
+      "predicted": 0,
+      "actual": 1,
+      "ml_prob": 0.4111,
+      "rule_score": 0,
+      "correct": false
+    },
+    {
+      "date": "2025-10-26 00:00:00",
+      "predicted": 1,
+      "actual": 0,
+      "ml_prob": 0.4232,
+      "rule_score": 5,
+      "correct": false
+    },
+    {
+      "date": "2025-10-27 00:00:00",
+      "predicted": 1,
+      "actual": 0,
+      "ml_prob": 0.4634,
+      "rule_score": 4,
+      "correct": false
+    },
+    {
+      "date": "2025-10-28 00:00:00",
+      "predicted": 1,
+      "actual": 0,
+      "ml_prob": 0.4253,
+      "rule_score": 4,
+      "correct": false
+    },
+    {
+      "date": "2025-10-29 00:00:00",
+      "predicted": 1,
+      "actual": 0,
+      "ml_prob": 0.4944,
+      "rule_score": 3,
+      "correct": false
+    },
+    {
+      "date": "2025-10-30 00:00:00",
+      "predicted": 1,
+      "actual": 1,
+      "ml_prob": 0.5377,
+      "rule_score": 1,
+      "correct": true
+    },
+    {
+      "date": "2025-10-31 00:00:00",
+      "predicted": 0,
+      "actual": 1,
+      "ml_prob": 0.3953,
+      "rule_score": 1,
+      "correct": false
+    },
+    {
+      "date": "2025-11-01 00:00:00",
+      "predicted": 0,
+      "actual": 1,
+      "ml_prob": 0.4496,
+      "rule_score": 1,
+      "correct": false
+    },
+    {
+      "date": "2025-11-02 00:00:00",
+      "predicted": 1,
+      "actual": 0,
+      "ml_prob": 0.3916,
+      "rule_score": 3,
+      "correct": false
+    },
+    {
+      "date": "2025-11-03 00:00:00",
+      "predicted": 1,
+      "actual": 0,
+      "ml_prob": 0.588,
+      "rule_score": -2,
+      "correct": false
+    },
+    {
+      "date": "2025-11-04 00:00:00",
+      "predicted": 1,
+      "actual": 1,
+      "ml_prob": 0.6759,
+      "rule_score": 2,
+      "correct": true
+    },
+    {
+      "date": "2025-11-05 00:00:00",
+      "predicted": 0,
+      "actual": 0,
+      "ml_prob": 0.3454,
+      "rule_score": 0,
+      "correct": true
+    },
+    {
+      "date": "2025-11-06 00:00:00",
+      "predicted": 1,
+      "actual": 1,
+      "ml_prob": 0.6259,
+      "rule_score": 2,
+      "correct": true
+    },
+    {
+      "date": "2025-11-07 00:00:00",
+      "predicted": 0,
+      "actual": 0,
+      "ml_prob": 0.4319,
+      "rule_score": 0,
+      "correct": true
+    },
+    {
+      "date": "2025-11-08 00:00:00",
+      "predicted": 1,
+      "actual": 1,
+      "ml_prob": 0.5506,
+      "rule_score": 0,
+      "correct": true
+    },
+    {
+      "date": "2025-11-09 00:00:00",
+      "predicted": 0,
+      "actual": 1,
+      "ml_prob": 0.4224,
+      "rule_score": 0,
+      "correct": false
+    },
+    {
+      "date": "2025-11-10 00:00:00",
+      "predicted": 0,
+      "actual": 0,
+      "ml_prob": 0.4257,
+      "rule_score": -1,
+      "correct": true
+    },
+    {
+      "date": "2025-11-11 00:00:00",
+      "predicted": 0,
+      "actual": 0,
+      "ml_prob": 0.4457,
+      "rule_score": 1,
+      "correct": true
+    },
+    {
+      "date": "2025-11-12 00:00:00",
+      "predicted": 1,
+      "actual": 0,
+      "ml_prob": 0.5166,
+      "rule_score": 0,
+      "correct": false
+    },
+    {
+      "date": "2025-11-13 00:00:00",
+      "predicted": 1,
+      "actual": 0,
+      "ml_prob": 0.6724,
+      "rule_score": 1,
+      "correct": false
+    },
+    {
+      "date": "2025-11-14 00:00:00",
+      "predicted": 1,
+      "actual": 1,
+      "ml_prob": 0.6465,
+      "rule_score": 4,
+      "correct": true
+    },
+    {
+      "date": "2025-11-15 00:00:00",
+      "predicted": 1,
+      "actual": 0,
+      "ml_prob": 0.5964,
+      "rule_score": 1,
+      "correct": false
+    },
+    {
+      "date": "2025-11-16 00:00:00",
+      "predicted": 1,
+      "actual": 0,
+      "ml_prob": 0.6707,
+      "rule_score": -1,
+      "correct": false
+    },
+    {
+      "date": "2025-11-17 00:00:00",
+      "predicted": 1,
+      "actual": 1,
+      "ml_prob": 0.7412,
+      "rule_score": -1,
+      "correct": true
+    },
+    {
+      "date": "2025-11-18 00:00:00",
+      "predicted": 1,
+      "actual": 0,
+      "ml_prob": 0.6594,
+      "rule_score": -2,
+      "correct": false
+    },
+    {
+      "date": "2025-11-19 00:00:00",
+      "predicted": 1,
+      "actual": 0,
+      "ml_prob": 0.7379,
+      "rule_score": -1,
+      "correct": false
+    },
+    {
+      "date": "2025-11-20 00:00:00",
+      "predicted": 1,
+      "actual": 0,
+      "ml_prob": 0.6891,
+      "rule_score": 1,
+      "correct": false
+    },
+    {
+      "date": "2025-11-21 00:00:00",
+      "predicted": 1,
+      "actual": 0,
+      "ml_prob": 0.7698,
+      "rule_score": 0,
+      "correct": false
+    },
+    {
+      "date": "2025-11-22 00:00:00",
+      "predicted": 1,
+      "actual": 1,
+      "ml_prob": 0.6582,
+      "rule_score": 0,
+      "correct": true
+    },
+    {
+      "date": "2025-11-23 00:00:00",
+      "predicted": 1,
+      "actual": 1,
+      "ml_prob": 0.6253,
+      "rule_score": -1,
+      "correct": true
+    },
+    {
+      "date": "2025-11-24 00:00:00",
+      "predicted": 0,
+      "actual": 0,
+      "ml_prob": 0.4617,
+      "rule_score": -1,
+      "correct": true
+    },
+    {
+      "date": "2025-11-25 00:00:00",
+      "predicted": 1,
+      "actual": 1,
+      "ml_prob": 0.5696,
+      "rule_score": 0,
+      "correct": true
+    },
+    {
+      "date": "2025-11-26 00:00:00",
+      "predicted": 0,
+      "actual": 1,
+      "ml_prob": 0.5061,
+      "rule_score": -3,
+      "correct": false
+    },
+    {
+      "date": "2025-11-27 00:00:00",
+      "predicted": 0,
+      "actual": 0,
+      "ml_prob": 0.4836,
+      "rule_score": 1,
+      "correct": true
+    },
+    {
+      "date": "2025-11-28 00:00:00",
+      "predicted": 1,
+      "actual": 0,
+      "ml_prob": 0.5638,
+      "rule_score": -1,
+      "correct": false
+    },
+    {
+      "date": "2025-11-29 00:00:00",
+      "predicted": 0,
+      "actual": 0,
+      "ml_prob": 0.4765,
+      "rule_score": -1,
+      "correct": true
+    },
+    {
+      "date": "2025-11-30 00:00:00",
+      "predicted": 1,
+      "actual": 0,
+      "ml_prob": 0.5033,
+      "rule_score": 3,
+      "correct": false
+    },
+    {
+      "date": "2025-12-01 00:00:00",
+      "predicted": 1,
+      "actual": 1,
+      "ml_prob": 0.6291,
+      "rule_score": 3,
+      "correct": true
+    },
+    {
+      "date": "2025-12-02 00:00:00",
+      "predicted": 0,
+      "actual": 1,
+      "ml_prob": 0.3402,
+      "rule_score": 2,
+      "correct": false
+    },
+    {
+      "date": "2025-12-03 00:00:00",
+      "predicted": 0,
+      "actual": 0,
+      "ml_prob": 0.4996,
+      "rule_score": 1,
+      "correct": true
+    },
+    {
+      "date": "2025-12-04 00:00:00",
+      "predicted": 1,
+      "actual": 0,
+      "ml_prob": 0.5721,
+      "rule_score": 1,
+      "correct": false
+    },
+    {
+      "date": "2025-12-05 00:00:00",
+      "predicted": 1,
+      "actual": 0,
+      "ml_prob": 0.5855,
+      "rule_score": -1,
+      "correct": false
+    },
+    {
+      "date": "2025-12-06 00:00:00",
+      "predicted": 1,
+      "actual": 1,
+      "ml_prob": 0.5183,
+      "rule_score": -2,
+      "correct": true
+    },
+    {
+      "date": "2025-12-07 00:00:00",
+      "predicted": 0,
+      "actual": 1,
+      "ml_prob": 0.4881,
+      "rule_score": -2,
+      "correct": false
+    },
+    {
+      "date": "2025-12-08 00:00:00",
+      "predicted": 0,
+      "actual": 1,
+      "ml_prob": 0.4423,
+      "rule_score": -2,
+      "correct": false
+    },
+    {
+      "date": "2025-12-09 00:00:00",
+      "predicted": 0,
+      "actual": 0,
+      "ml_prob": 0.4673,
+      "rule_score": -1,
+      "correct": true
+    },
+    {
+      "date": "2025-12-10 00:00:00",
+      "predicted": 1,
+      "actual": 1,
+      "ml_prob": 0.5068,
+      "rule_score": 2,
+      "correct": true
+    },
+    {
+      "date": "2025-12-11 00:00:00",
+      "predicted": 0,
+      "actual": 0,
+      "ml_prob": 0.4338,
+      "rule_score": 1,
+      "correct": true
+    },
+    {
+      "date": "2025-12-12 00:00:00",
+      "predicted": 0,
+      "actual": 1,
+      "ml_prob": 0.4984,
+      "rule_score": -2,
+      "correct": false
+    },
+    {
+      "date": "2025-12-13 00:00:00",
+      "predicted": 0,
+      "actual": 0,
+      "ml_prob": 0.4876,
+      "rule_score": -2,
+      "correct": true
+    },
+    {
+      "date": "2025-12-14 00:00:00",
+      "predicted": 1,
+      "actual": 0,
+      "ml_prob": 0.5243,
+      "rule_score": -2,
+      "correct": false
+    },
+    {
+      "date": "2025-12-15 00:00:00",
+      "predicted": 1,
+      "actual": 1,
+      "ml_prob": 0.5157,
+      "rule_score": 1,
+      "correct": true
+    },
+    {
+      "date": "2025-12-16 00:00:00",
+      "predicted": 0,
+      "actual": 0,
+      "ml_prob": 0.4497,
+      "rule_score": -1,
+      "correct": true
+    },
+    {
+      "date": "2025-12-17 00:00:00",
+      "predicted": 0,
+      "actual": 0,
+      "ml_prob": 0.6975,
+      "rule_score": -3,
+      "correct": true
+    },
+    {
+      "date": "2025-12-18 00:00:00",
+      "predicted": 1,
+      "actual": 1,
+      "ml_prob": 0.58,
+      "rule_score": -2,
+      "correct": true
+    },
+    {
+      "date": "2025-12-19 00:00:00",
+      "predicted": 0,
+      "actual": 1,
+      "ml_prob": 0.4951,
+      "rule_score": -5,
+      "correct": false
+    },
+    {
+      "date": "2025-12-20 00:00:00",
+      "predicted": 0,
+      "actual": 1,
+      "ml_prob": 0.4613,
+      "rule_score": 0,
+      "correct": false
+    },
+    {
+      "date": "2025-12-21 00:00:00",
+      "predicted": 0,
+      "actual": 0,
+      "ml_prob": 0.4842,
+      "rule_score": -1,
+      "correct": true
+    }
+  ],
+  "timestamp": "2025-12-22T19:39:53.637840",
+  "model_version": "4.0"
+}
