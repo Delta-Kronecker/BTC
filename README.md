@@ -6,13 +6,13 @@ This bot uses a **Hybrid LSTM-Attention Network** to predict Bitcoin prices base
 ## 🔮 Prediction for Tomorrow
 | Metric | Value |
 | :--- | :--- |
-| **Date** | 2026-01-09 02:15 UTC |
-| **Current Price** | $91,308.05 |
-| **Predicted Price** | **$91,667.68** |
-| **Expected Return** | +0.39% |
+| **Date** | 2026-01-10 02:13 UTC |
+| **Current Price** | $91,027.12 |
+| **Predicted Price** | **$91,446.85** |
+| **Expected Return** | +0.46% |
 | **Direction** | 🟢 BULLISH |
-| **Confidence** | 89.0% 🔥 |
-| **95% Confidence Interval** | $91,439.38 - $91,895.97 |
+| **Confidence** | 86.7% 🔥 |
+| **95% Confidence Interval** | $91,160.73 - $91,732.98 |
 
 ### 📊 Model Architecture
 - **Type:** LSTM + Multi-Head Attention + Monte Carlo Dropout
